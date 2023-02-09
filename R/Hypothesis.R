@@ -13,14 +13,20 @@ callName <- function(n=1){
 ##' @return a Hypothesis with a "transformed" component
 ##' @export Hypothesis
 ##' @export CoefficientHypothesis
-##' @aliases Hypothesis CoefficientHypothesis
 ##' @examples
 ##' h <- Hypothesis('Stim.ConditionUnstim', c('(Intercept)', 'Stim.ConditionUnstim'))
 ##' h@@contrastMatrix
 ##' @seealso zlm waldTest lrTest
-Hypothesis <- CoefficientHypothesis <- function(hypothesis, terms){
-    whoami <- callName()
-    h <- new(whoami, .Data=hypothesis)
+Hypothesis <-  function(hypothesis, terms){
+    h <- new("Hypothesis", .Data=hypothesis)
+    if(!missing(terms)){
+        h <- generateHypothesis(h, terms)
+    }
+    h        
+}
+
+CoefficientHypothesis <- function(hypothesis, terms){
+    h <- new("CoefficientHypothesis", .Data=hypothesis)
     if(!missing(terms)){
         h <- generateHypothesis(h, terms)
     }
