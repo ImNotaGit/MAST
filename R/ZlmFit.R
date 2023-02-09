@@ -256,13 +256,15 @@ setMethod('summary', signature=c(object='ZlmFit'), function(object, logFC=TRUE, 
     }
     setkey(dt, contrast, z)
 
+    # I modified the handling of doLRT in a way analogous to logFC -- pass either TRUE/FALSE, or the output from manually running one or more lrTest's in a named list
     if(is.logical(doLRT) && doLRT){
         doLRT <- setdiff(colnames(coef(object, 'D')), '(Intercept)')
+        message('Calculating likelihood ratio tests')
+        doLRT <- lapply(setNames(nm=doLRT), function(x) lrTest(object, CoefficientHypothesis(x), parallel = parallel))
     }
     if(!is.logical(doLRT)){
-        message('Calculating likelihood ratio tests')
-        llrt <- lapply(doLRT, function(x) lrTest(object, CoefficientHypothesis(x), parallel = parallel)[,,'Pr(>Chisq)'])
-        names(llrt) <-  doLRT
+        if (!is.list(doLRT)) stop("Need to pass doLRT as a named list containing lrTest outputs.")
+        llrt <- lapply(doLRT, function(x) x[,,'Pr(>Chisq)'])
         llrt <- data.table(reshape2::melt(llrt))
         setnames(llrt, c('test.type', 'L1', 'value'), c('component', 'contrast', 'Pr(>Chisq)'))
         llrt[,':='(component=c(cont='C', disc='D', hurdle='H')[component],
